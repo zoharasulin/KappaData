@@ -1,4 +1,6 @@
 import torch
+from collections import defaultdict
+
 
 class MultiCropJointForwardModule(torch.nn.Module):
     def __init__(self, module):
@@ -17,7 +19,7 @@ class MultiCropSplitForwardModule(torch.nn.Module):
         return multi_crop_split_forward(self.module, *args, **kwargs)
 
 
-def multi_crop_joint_forward(model, x):
+def multi_crop_joint_forward(model, *args, **kwargs):
     # concat if input is list/tuple
     if isinstance(x, (list, tuple)):
         n_chunks = len(x)
@@ -32,6 +34,24 @@ def multi_crop_joint_forward(model, x):
     if n_chunks is not None:
         return y.chunk(n_chunks)
     return y
+
+def concat_same_shapes(*args, **kwargs):
+    # collect same shapes
+    concat_args = []
+    for i in range(len(args)):
+        if isinstance(args[i], (list, tuple)) and torch.is_tensor(args[i][0]):
+            items_by_shape = defaultdict(list)
+            for item in args[i]:
+                items_by_shape[item.shape].append(item)
+            
+            if len(items_by_shape) == 1:
+                concat_args.append(torch.concat(list(items_by_shape.values())[0]))
+            else:
+
+        else:
+            concat_args.append(args[i])
+
+
 
 
 def multi_crop_split_forward(model, x, n_chunks=None):
