@@ -53,7 +53,10 @@ class InterleavedSampler:
         while True:
             sample_in_epoch = 0
             for main_idx in self.main_sampler:
-                yield main_idx
+                if sample_in_update == self.batch_size or sample_in_epoch == samples_per_epoch:
+                    yield True, main_idx
+                else:
+                    yield False, main_idx
                 sample += 1
                 sample_in_epoch += 1
                 sample_in_update += 1
@@ -79,7 +82,10 @@ class InterleavedSampler:
                         ):
                             index_offset = self.index_offsets[config_idx]
                             for interleaved_idx in config.sampler:
-                                yield index_offset + interleaved_idx
+                                if interleaved_idx % self.batch_size == 0 or interleaved_idx == len(config.sampler):
+                                    yield True, index_offset + interleaved_idx
+                                else:
+                                    yield False, index_offset + interleaved_idx
 
                     # check if end is reached
                     if (

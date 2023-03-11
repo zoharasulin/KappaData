@@ -6,7 +6,7 @@ from torch.utils.data import RandomSampler, SequentialSampler
 
 class TestInterleavedSampler(unittest.TestCase):
     def _run(self, sampler, expected):
-        actual = [i for i in sampler]
+        actual = [i for (_, i) in sampler]
         self.assertEqual(expected, actual)
 
     def test_sequential_nodroplast_enu1sequential(self):
